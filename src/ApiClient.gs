@@ -45,3 +45,13 @@ function wbPromotionRequest_(path, method, payload, regulation) {
 function wbPricesRequest_(path, method, payload, regulation) {
   return wbRequestAt_('https://discounts-prices-api.wildberries.ru',path,method,payload,regulation||'WB Prices API');
 }
+function wbFinanceRequest_(path, method, payload, regulation) {
+  // Finance API WB допускает редкие запросы. Соблюдаем интервал централизованно,
+  // чтобы повторный ручной запуск и пагинация не ловили 429.
+  const props=PropertiesService.getScriptProperties(), key='WB_FINANCE_LAST_CALL_MS';
+  const last=Number(props.getProperty(key)||0), wait=Math.max(0,61000-(Date.now()-last));
+  if(wait>0) Utilities.sleep(wait);
+  const result=wbRequestAt_('https://finance-api.wildberries.ru',path,method,payload,regulation||'WB Finance API');
+  props.setProperty(key,String(Date.now()));
+  return result;
+}
