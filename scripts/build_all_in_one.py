@@ -31,7 +31,7 @@ def main():
         '/** Prostaya All-in-One dev8. Generated from bmaks98/Prostaya src. */',
         f'const PROSTAYA_SUPPLIER_ORDER_HTML_ = `{supplier_html}`;',
         f'const PROSTAYA_RECEIVE_DELIVERY_HTML_ = `{receive_html}`;',
-        """function prostayaRenderHtml_(html, data) {\n  const json = JSON.stringify(data || {}).replace(/</g, '\\\\u003c');\n  return html.replace('<?!= JSON.stringify(data) ?>', json);\n}\nfunction installSystemFromTemplate(){ return installProject(); }"""
+        """function prostayaRenderHtml_(html, data) {\n  const json = JSON.stringify(data || {}).replace(/</g, '\\\\u003c');\n  return html.replace('<?!= JSON.stringify(data) ?>', json);\n}\nfunction installSystemFromTemplate(){ bindInstanceSpreadsheet_(); return installProject(); }"""
     ]
     for name in ORDER:
         text = (SRC / name).read_text(encoding='utf-8')
