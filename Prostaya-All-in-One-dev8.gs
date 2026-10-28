@@ -294,7 +294,8 @@ function apiFetchWithRetry_(cfg) {
       const resp=UrlFetchApp.fetch(cfg.url,{method:cfg.method||'get',headers:cfg.headers||{},payload:cfg.payload===undefined?undefined:(typeof cfg.payload==='string'?cfg.payload:JSON.stringify(cfg.payload)),contentType:cfg.contentType||'application/json',muteHttpExceptions:true});
       const code=resp.getResponseCode(), text=resp.getContentText();
       if(code>=200 && code<300) return {ok:true,code:code,text:text,json:safeJson_(text),headers:resp.getAllHeaders()};
-      const err=new Error('HTTP '+code+': '+text.substring(0,1000)); err.httpCode=code;
+      const prefix=[cfg.marketplace||'',cfg.regulation||''].filter(Boolean).join(' · ');
+      const err=new Error((prefix?prefix+' · ':'')+'HTTP '+code+' ['+cfg.url+']: '+text.substring(0,1000)); err.httpCode=code;
       if(!retryCodes[code]) throw err;
       lastErr=err; if(attempt<3) Utilities.sleep(attempt*1500);
     } catch(e){
