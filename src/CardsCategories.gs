@@ -66,9 +66,8 @@ function ensureCardCategoryServiceColumns_(sh){
   if(sh.getMaxColumns()<CARD_CATEGORY_SERVICE.OZ_PATH)sh.insertColumnsAfter(sh.getMaxColumns(),CARD_CATEGORY_SERVICE.OZ_PATH-sh.getMaxColumns());
   const headers={10:'WB справочник: предмет',11:'WB Subject ID (справочник)',12:'WB родительская категория (справочник)',14:'Ozon справочник: тип товара',15:'Ozon Description Category ID (справочник)',16:'Ozon Type ID (справочник)',17:'Ozon путь категории (справочник)'};
   Object.keys(headers).forEach(k=>sh.getRange(1,Number(k)).setValue(headers[k]));
-  sh.hideColumns(5,4);
-  sh.hideColumns(10,3);
-  sh.hideColumns(14,4);
+  // Пользователь видит только 4 утверждённых колонки. Все справочники и ID служебные.
+  if(sh.getMaxColumns()>=17) sh.hideColumns(5,13);
 }
 
 function cardWbSubjectDirectory_(){
