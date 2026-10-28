@@ -226,10 +226,14 @@ function secret_(key){ return PropertiesService.getScriptProperties().getPropert
 function hasWbCredentials_(){return !!secret_(APP.SECRET_KEYS.WB_TOKEN)}
 function hasOzonCredentials_(){return !!secret_(APP.SECRET_KEYS.OZON_CLIENT_ID)&&!!secret_(APP.SECRET_KEYS.OZON_API_KEY)}
 function resetServiceState(){
-  PropertiesService.getScriptProperties().deleteAllProperties();
+  const props=PropertiesService.getScriptProperties();
+  let instanceId=props.getProperty(INSTANCE_SPREADSHEET_ID_KEY_)||'';
+  if(!instanceId){try{const active=SpreadsheetApp.getActiveSpreadsheet();if(active)instanceId=String(active.getId());}catch(e){}}
+  props.deleteAllProperties();
+  if(instanceId)props.setProperty(INSTANCE_SPREADSHEET_ID_KEY_,String(instanceId));
   ['Статус WB','Статус Ozon'].forEach(k=>{try{setSetting_(k,'Не проверено')}catch(e){}});
   ['Разрешить отправку остатков','Разрешить отправку цен','Разрешить управление акциями'].forEach(k=>{try{setSetting_(k,'Нет')}catch(e){}});
-  toast_('Служебное состояние и сохранённые API-ключи сброшены. Пользовательские данные листов не удалены.');
+  toast_('Служебное состояние и сохранённые API-ключи сброшены. Привязка к этой таблице сохранена. Пользовательские данные листов не удалены.');
 }
 /* ===== ApiClient.gs ===== */
 function apiFetchWithRetry_(cfg) {
