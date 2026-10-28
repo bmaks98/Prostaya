@@ -58,8 +58,9 @@ function wbFetchCatalog_() {
 }
 
 function normalizeWbCard_(c) {
-  const barcodes=[];
-  (c.sizes||[]).forEach(s=>(s.skus||[]).forEach(x=>{ if(asText_(x)) barcodes.push(asText_(x)); }));
+  const barcodes=[], chrtIds=[];
+  (c.sizes||[]).forEach(s=>{ const cid=asText_(s.chrtID||s.chrtId); if(cid&&chrtIds.indexOf(cid)<0)chrtIds.push(cid); (s.skus||[]).forEach(x=>{ if(asText_(x)) barcodes.push(asText_(x)); }); });
+  const chrtId=chrtIds.length===1?chrtIds[0]:'';
   return {
     marketplace:'WB',
     id:asText_(c.nmID),
@@ -68,6 +69,8 @@ function normalizeWbCard_(c) {
     barcode:barcodes[0]||'',
     barcodes:Array.from(new Set(barcodes)),
     subject:asText_(c.subjectName),
+    chrtId:chrtId,
+    sizeCount:chrtIds.length,
     raw:c
   };
 }
