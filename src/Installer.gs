@@ -111,7 +111,6 @@ function applyValidations_() {
     if (['Использовать WB','Использовать Ozon','Использовать сезонность','Генерировать штрихкод автоматически','Разрешить отправку остатков','Разрешить отправку цен','Разрешить управление акциями'].includes(p)) cell.setDataValidation(yesNo);
     if (['Автоматическая установка цен','Автоматическое управление акциями','Автоматическая отправка остатков','Email-уведомления'].includes(p)) cell.setDataValidation(onOff);
     if (p==='Режим цены по умолчанию') cell.setDataValidation(priceMode);
-    if (p==='НДС Ozon по умолчанию') cell.setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList(['0','0.05','0.07','0.1','0.2','0.22'],true).setAllowInvalid(true).build());
     if (p==='Период анализа' || p==='Горизонт планирования') cell.setDataValidation(period);
   });
   const regs=sheet_(APP.SHEETS.REGULATIONS);
