@@ -25,6 +25,9 @@ function wbRequestAt_(base, path, method, payload, regulation) {
 function wbRequest_(path, method, payload, regulation) {
   return wbRequestAt_('https://common-api.wildberries.ru',path,method,payload,regulation);
 }
+function wbMarketplaceRequest_(path, method, payload, regulation) {
+  return wbRequestAt_('https://marketplace-api.wildberries.ru',path,method,payload,regulation||'WB Marketplace API');
+}
 function wbContentRequest_(path, method, payload, regulation) {
   return wbRequestAt_('https://content-api.wildberries.ru',path,method,payload,regulation||'WB Content API');
 }
