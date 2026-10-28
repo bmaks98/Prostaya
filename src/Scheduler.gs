@@ -9,7 +9,7 @@ function masterScheduler(){
   rows.forEach((r,i)=>{ if(!r[2]) return; const mins=periodMinutes_(r[3]); if(!mins)return; const last=r[4]?new Date(r[4]).getTime():0; if(!last || now-last>=mins*60000-30000) runRegulationById_(r[0],'Автоматический',i+2); });
 }
 function runRegulationById_(id,runType,row){
-  const map={orders_wb:()=>processWbOrders(),orders_ozon:()=>processOzonOrders(),stocks_sync:()=>syncStocks(),prices_sync:()=>syncPrices(),actions_sync:()=>manageActions(),dashboard_refresh:()=>refreshDashboard(),forecast_refresh:()=>refreshForecast()};
+  const map={orders_wb:()=>processWbOrders(),orders_ozon:()=>processOzonOrders(),stocks_sync:()=>syncStocks(),prices_sync:()=>syncPrices(runType==='Автоматический'),actions_sync:()=>manageActions(),dashboard_refresh:()=>refreshDashboard(),forecast_refresh:()=>refreshForecast()};
   if(!map[id]) return;
   const sh=sheet_(APP.SHEETS.REGULATIONS), started=Date.now();
   try{ if(row) sh.getRange(row,7).setValue('Выполняется'); const result=map[id]()||{}; const duration=Math.round((Date.now()-started)/1000);
