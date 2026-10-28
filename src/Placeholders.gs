@@ -1,8 +1,6 @@
 // Функциональные модули следующих этапов. Команды уже подключены к меню,
 // но до реализации не отправляют изменения на маркетплейсы.
 function notReady_(name){ toast_(name+': модуль будет реализован на следующем этапе.'); return {processed:0,success:0,errors:0}; }
-function importCatalogs(){return notReady_('Импорт каталогов')} function updateWbCatalog(){return notReady_('Каталог WB')} function updateOzonCatalog(){return notReady_('Каталог Ozon')}
-function runMatching(){return notReady_('Сопоставление товаров')}
 function processWbOrders(){return notReady_('Заказы WB')} function processOzonOrders(){return notReady_('Заказы Ozon')}
 function syncStocks(){assertGuard_(APP.SAFE_GUARDS.SEND_STOCKS); return notReady_('Синхронизация остатков')}
 function calculatePrices(){return notReady_('Расчёт цен')} function sendWbPrices(){assertGuard_(APP.SAFE_GUARDS.SEND_PRICES); return notReady_('Отправка цен WB')} function sendOzonPrices(){assertGuard_(APP.SAFE_GUARDS.SEND_PRICES); return notReady_('Отправка цен Ozon')}
