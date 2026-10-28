@@ -169,6 +169,7 @@ function projectTimeZone_() {
   tz = asText_(tz) || 'Europe/Moscow';
   return String(tz);
 }
+function safeTimeZone_() { return projectTimeZone_(); }
 function formatDateTime_(d) { return d ? Utilities.formatDate(new Date(d), projectTimeZone_(), 'dd.MM.yyyy HH:mm:ss') : ''; }
 function toast_(msg, title) { ss_().toast(msg, title || APP.NAME, 7); }
 function findHeaderMap_(sheet, row) {
