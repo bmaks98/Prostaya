@@ -483,7 +483,8 @@ function hideTechnicalColumns_() {
 function onOpen() {
   const ui=SpreadsheetApp.getUi();
   ui.createMenu('Начало работы')
-    .addItem('Открыть лист «Начало работы»','openStartSheet')
+    .addItem('🟢 УСТАНОВИТЬ СИСТЕМУ','installProject')
+    .addSeparator().addItem('Открыть лист «Начало работы»','openStartSheet')
     .addSeparator().addItem('Проверить подключение WB','checkWbConnection')
     .addItem('Проверить подключение Ozon','checkOzonConnection')
     .addItem('Проверить подключения','checkAllConnections')
