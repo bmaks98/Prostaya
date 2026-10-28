@@ -119,6 +119,7 @@ function applyValidations_() {
   const forecast=sheet_(APP.SHEETS.FORECAST); forecast.getRange(2,1,forecast.getMaxRows()-1,1).insertCheckboxes();
   const margins=sheet_(APP.SHEETS.MARGINS); margins.getRange(2,3,margins.getMaxRows()-1,1).insertCheckboxes();
   const cats=sheet_(APP.SHEETS.CATEGORIES); cats.getRange(2,4,cats.getMaxRows()-1,1).insertCheckboxes();
+  const matching=sheet_(APP.SHEETS.MATCHING); const mh=findHeaderMap_(matching); if(mh['Подтверждено вручную']) matching.getRange(2,mh['Подтверждено вручную'],matching.getMaxRows()-1,1).insertCheckboxes();
 }
 
 function hideTechnicalColumns_() {
