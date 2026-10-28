@@ -18,9 +18,15 @@ function apiFetchWithRetry_(cfg) {
   throw lastErr||new Error(msg);
 }
 
-function wbRequest_(path, method, payload, regulation) {
+function wbRequestAt_(base, path, method, payload, regulation) {
   const token=secret_(APP.SECRET_KEYS.WB_TOKEN); if(!token) throw new Error('WB API Token не сохранён.');
-  return apiFetchWithRetry_({url:'https://common-api.wildberries.ru'+path,method:method||'get',payload:payload,headers:{Authorization:token},marketplace:'WB',regulation:regulation||'WB API'});
+  return apiFetchWithRetry_({url:base+path,method:method||'get',payload:payload,headers:{Authorization:token},marketplace:'WB',regulation:regulation||'WB API'});
+}
+function wbRequest_(path, method, payload, regulation) {
+  return wbRequestAt_('https://common-api.wildberries.ru',path,method,payload,regulation);
+}
+function wbContentRequest_(path, method, payload, regulation) {
+  return wbRequestAt_('https://content-api.wildberries.ru',path,method,payload,regulation||'WB Content API');
 }
 function ozonRequest_(path, payload, regulation) {
   const cid=secret_(APP.SECRET_KEYS.OZON_CLIENT_ID), key=secret_(APP.SECRET_KEYS.OZON_API_KEY); if(!cid||!key) throw new Error('Ozon Client ID / API Key не сохранены.');
