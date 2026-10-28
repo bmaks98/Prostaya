@@ -28,7 +28,7 @@ function prostayaRenderHtml_(html, data) {
   const json = JSON.stringify(data || {}).replace(/</g, '\\u003c');
   return html.replace('<?!= JSON.stringify(data) ?>', json);
 }
-function installSystemFromTemplate(){ return installProject(); }
+function installSystemFromTemplate(){ bindInstanceSpreadsheet_(); return installProject(); }
 /* ===== Config.gs ===== */
 const APP = Object.freeze({
   NAME: 'WB + Ozon',
