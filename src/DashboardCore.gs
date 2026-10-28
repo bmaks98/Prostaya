@@ -3,7 +3,7 @@
  * В продажи попадают только финансово реализованные операции маркетплейсов.
  * Заказы из «Журнала заказов» здесь не используются.
  */
-function refreshDashboard(){
+function refreshDashboard(automatic){
   const started=Date.now(), period=dashboardPeriod_();
   const useWb=boolText_(getSetting_('Использовать WB','Нет'));
   const useOzon=boolText_(getSetting_('Использовать Ozon','Нет'));
@@ -23,7 +23,7 @@ function refreshDashboard(){
   const total=mergeDashboardMarkets_(wb,oz,'Общий');
   writeDashboard_(period,wb,oz,total,stock,errors);
   const processed=(wb.rawCount||0)+(oz.rawCount||0), duration=Math.round((Date.now()-started)/1000);
-  logEvent_({regulation:'Дашборд',runType:'Ручной',result:errors.length?'С предупреждениями':'Успешно',processed:processed,success:processed,errors:errors.length,duration:duration,info:'Период '+dashboardDateKey_(period.from)+' — '+dashboardDateKey_(period.to)});
+  logEvent_({regulation:'Дашборд',runType:automatic===true?'Автоматический':'Ручной',result:errors.length?'С предупреждениями':'Успешно',processed:processed,success:processed,errors:errors.length,duration:duration,info:'Период '+dashboardDateKey_(period.from)+' — '+dashboardDateKey_(period.to)});
   toast_('Дашборд обновлён'+(errors.length?' с предупреждениями':'')+'.');
   return {processed:processed,success:processed,errors:errors.length};
 }
@@ -66,7 +66,6 @@ function dashboardStockContext_(){
   });
   return out;
 }
-
 
 function mergeDashboardMarkets_(a,b,name){
   const out=emptyDashboardMarket_(name);['revenue','qty','cogs','commission','logistics','other','profit','returns','rawCount'].forEach(k=>out[k]=(a[k]||0)+(b[k]||0));
