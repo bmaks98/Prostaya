@@ -33,12 +33,12 @@ function dashboardWbRowDate_(x,fallback){const v=x.rrDate||x.rr_dt||x.saleDt||x.
 function wbFetchFinanceRows_(period){
   const all=[],seen={},limit=100000;let rrdId=0;
   for(let page=0;page<20;page++){
-    const body={dateFrom:dashboardDateKey_(period.from),dateTo:dashboardDateKey_(period.to),rrdId:rrdId,limit:limit};
+    const body={dateFrom:dashboardDateKey_(period.from)+'T00:00:00+03:00',dateTo:dashboardDateKey_(period.to)+'T23:59:59+03:00',rrdId:rrdId,limit:limit};
     const resp=wbFinanceRequest_('/api/finance/v1/sales-reports/detailed','post',body,'Дашборд WB');
     if(resp.code===204||!resp.text)return all;
     const json=resp.json, batch=Array.isArray(json)?json:(Array.isArray(json&&json.data)?json.data:[]);
     batch.forEach(x=>{const id=asText_(x.rrdId!==undefined?x.rrdId:x.rrd_id);if(id&&seen[id])return;if(id)seen[id]=1;all.push(x);});
-    if(batch.length<limit)return all;
+    if(!batch.length)return all;
     const last=batch[batch.length-1],next=toNumber_(last.rrdId!==undefined?last.rrdId:last.rrd_id);
     if(!next||next===rrdId)throw new Error('WB вернул неполный финансовый отчёт без корректного rrdId.');
     rrdId=next;
