@@ -128,5 +128,7 @@ function applyValidations_() {
 function hideTechnicalColumns_() {
   const sh=sheet_(APP.SHEETS.CATEGORIES);
   if (sh.getMaxColumns()>=8) sh.hideColumns(5,4);
-  const stock=sheet_(APP.SHEETS.STOCK), h=findHeaderMap_(stock); if(h['WB chrtId (служебно)']) stock.hideColumns(h['WB chrtId (служебно)']);
+  const stock=sheet_(APP.SHEETS.STOCK), h=findHeaderMap_(stock);
+  ['WB chrtId (служебно)','WB Subject ID (служебно)','WB Длина, см (служебно)','WB Ширина, см (служебно)','WB Высота, см (служебно)'].forEach(name=>{if(h[name])stock.hideColumns(h[name]);});
+  if(typeof applyPriceSheetValidation_==='function') applyPriceSheetValidation_();
 }
