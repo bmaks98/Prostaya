@@ -1,6 +1,6 @@
 const APP = Object.freeze({
   NAME: 'WB + Ozon',
-  VERSION: '1.1.0-dev.4',
+  VERSION: '1.1.0-dev.5',
   SHEETS: {
     START: 'Начало работы',
     SETTINGS: 'Настройки',
