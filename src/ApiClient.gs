@@ -31,6 +31,9 @@ function wbMarketplaceRequest_(path, method, payload, regulation) {
 function wbContentRequest_(path, method, payload, regulation) {
   return wbRequestAt_('https://content-api.wildberries.ru',path,method,payload,regulation||'WB Content API');
 }
+function wbPricesRequest_(path, method, payload, regulation) {
+  return wbRequestAt_('https://discounts-prices-api.wildberries.ru',path,method,payload,regulation||'WB Prices API');
+}
 function ozonRequest_(path, payload, regulation) {
   const cid=secret_(APP.SECRET_KEYS.OZON_CLIENT_ID), key=secret_(APP.SECRET_KEYS.OZON_API_KEY); if(!cid||!key) throw new Error('Ozon Client ID / API Key не сохранены.');
   return apiFetchWithRetry_({url:'https://api-seller.ozon.ru'+path,method:'post',payload:payload||{},headers:{'Client-Id':cid,'Api-Key':key},marketplace:'Ozon',regulation:regulation||'Ozon API'});
