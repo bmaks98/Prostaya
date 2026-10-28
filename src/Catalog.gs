@@ -69,6 +69,12 @@ function normalizeWbCard_(c) {
     barcode:barcodes[0]||'',
     barcodes:Array.from(new Set(barcodes)),
     subject:asText_(c.subjectName),
+    subjectId:asText_(c.subjectID||c.subjectId),
+    dimensions:{
+      length:toNumber_(c.dimensions&&c.dimensions.length),
+      width:toNumber_(c.dimensions&&c.dimensions.width),
+      height:toNumber_(c.dimensions&&c.dimensions.height)
+    },
     chrtId:chrtId,
     sizeCount:chrtIds.length,
     raw:c
