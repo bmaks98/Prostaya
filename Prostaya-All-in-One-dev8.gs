@@ -558,7 +558,7 @@ function hideTechnicalColumns_() {
 function onOpen() {
   const ui=SpreadsheetApp.getUi();
   ui.createMenu('Начало работы')
-    .addItem('🟢 УСТАНОВИТЬ СИСТЕМУ','installProject')
+    .addItem('🟢 УСТАНОВИТЬ СИСТЕМУ','installSystemFromTemplate')
     .addSeparator().addItem('Открыть лист «Начало работы»','openStartSheet')
     .addSeparator().addItem('Проверить подключение WB','checkWbConnection')
     .addItem('Проверить подключение Ozon','checkOzonConnection')
@@ -621,8 +621,9 @@ function onOpen() {
     .addItem('Сохранить API-ключи','saveApiCredentials')
     .addItem('Обновить список складов','refreshWarehouseSettings')
     .addItem('Проверить систему','checkSystemReadiness')
-    .addItem('Повторно выполнить первичную настройку','installProject')
-    .addItem('Сбросить только служебные настройки','resetServiceState').addToUi();
+    .addItem('Повторно выполнить первичную настройку','installSystemFromTemplate')
+    .addItem('Сбросить только служебные настройки','resetServiceState')
+    .addSeparator().addItem('🧹 Подготовить мастер-шаблон к копированию','prepareTemplateForCopy').addToUi();
 }
 
 function activate_(name){ ss_().setActiveSheet(sheet_(name)); }
