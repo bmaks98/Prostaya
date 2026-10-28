@@ -45,6 +45,9 @@ function ensureSettingsSheet_() {
     sh.clear();
     sh.getRange(1,1,1,5).setValues([['Группа','Параметр','Значение','Описание','Статус']]);
     sh.getRange(2,1,DEFAULT_SETTINGS.length,5).setValues(DEFAULT_SETTINGS);
+  } else {
+    const existing={}; sh.getRange(2,2,sh.getLastRow()-1,1).getValues().flat().forEach(x=>existing[asText_(x)]=true);
+    const missing=DEFAULT_SETTINGS.filter(r=>!existing[r[1]]); if(missing.length) sh.getRange(sh.getLastRow()+1,1,missing.length,5).setValues(missing);
   }
   styleHeader_(sh,5); sh.setFrozenRows(1);
   sh.setColumnWidth(1,150); sh.setColumnWidth(2,260); sh.setColumnWidth(3,210); sh.setColumnWidth(4,420); sh.setColumnWidth(5,150);
@@ -125,4 +128,5 @@ function applyValidations_() {
 function hideTechnicalColumns_() {
   const sh=sheet_(APP.SHEETS.CATEGORIES);
   if (sh.getMaxColumns()>=8) sh.hideColumns(5,4);
+  const stock=sheet_(APP.SHEETS.STOCK), h=findHeaderMap_(stock); if(h['WB chrtId (служебно)']) stock.hideColumns(h['WB chrtId (служебно)']);
 }
