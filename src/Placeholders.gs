@@ -1,8 +1,6 @@
 // Функциональные модули следующих этапов. Команды уже подключены к меню,
 // но до реализации не отправляют изменения на маркетплейсы.
 function notReady_(name){ toast_(name+': модуль будет реализован на следующем этапе.'); return {processed:0,success:0,errors:0}; }
-function calculatePrices(){return notReady_('Расчёт цен')} function sendWbPrices(){assertGuard_(APP.SAFE_GUARDS.SEND_PRICES); return notReady_('Отправка цен WB')} function sendOzonPrices(){assertGuard_(APP.SAFE_GUARDS.SEND_PRICES); return notReady_('Отправка цен Ozon')}
-function syncPrices(){assertGuard_(APP.SAFE_GUARDS.SEND_PRICES); return notReady_('Пересчёт и отправка цен')}
 function checkWbActions(){return notReady_('Акции WB')} function checkOzonActions(){return notReady_('Акции Ozon')} function manageActions(){assertGuard_(APP.SAFE_GUARDS.MANAGE_ACTIONS); return notReady_('Управление акциями')}
 function refreshForecast(){return notReady_('Прогноз закупок')} function refreshDashboard(){return notReady_('Дашборд')}
 function createSupplierOrder(){return notReady_('Создание заказа поставщику')} function createSupplierOrderFromSelected(){return notReady_('Заказ из прогноза')} function acceptSupplierDelivery(){return notReady_('Приёмка поставки')}
