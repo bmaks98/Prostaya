@@ -123,6 +123,7 @@ function applyValidations_() {
   const margins=sheet_(APP.SHEETS.MARGINS); margins.getRange(2,3,margins.getMaxRows()-1,1).insertCheckboxes();
   const cats=sheet_(APP.SHEETS.CATEGORIES); cats.getRange(2,4,cats.getMaxRows()-1,1).insertCheckboxes();
   const matching=sheet_(APP.SHEETS.MATCHING); const mh=findHeaderMap_(matching); if(mh['Подтверждено вручную']) matching.getRange(2,mh['Подтверждено вручную'],matching.getMaxRows()-1,1).insertCheckboxes();
+  const supplier=sheet_(APP.SHEETS.SUPPLIER_ORDERS), sph=findHeaderMap_(supplier); if(sph['Статус']) supplier.getRange(2,sph['Статус'],supplier.getMaxRows()-1,1).setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList(['Заказан','В пути','Частично получен','Получен','Отменён'],true).build());
 }
 
 function hideTechnicalColumns_() {
