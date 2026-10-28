@@ -88,7 +88,8 @@ function writeStockFromMatches_(matches,old){
     const stockValue=hasPrev ? prev['Фактический остаток'] : '';
     const wbCodes=w ? ((w.barcodes&&w.barcodes.length)?w.barcodes.join(', '):(prev['WB SKU / barcode']||w.barcode||'')) : '';
     const ozSku=o ? (o.sku||prev['Ozon SKU']||'') : '';
-    return [m.internalId,name,prev['Категория']||'',w&&w.offer?w.offer:(o&&o.offer?o.offer:''),w&&w.barcode?w.barcode:(o&&o.barcode?o.barcode:''),prev['Себестоимость']||'',stockValue,prev['Срок поставки, дней']||'',prev['Запас, дней']||'',prev['Маржинальность товара, %']||'',prev['Используемая маржинальность, %']||'',!!w,w?w.id:'',w?w.offer:'',wbCodes,!!o,o?o.id:'',o?o.offer:'',ozSku,m.status,source,prev['Последнее движение']||'',now_(),w?(w.chrtId||prev['WB chrtId (служебно)']||''):(prev['WB chrtId (служебно)']||'')];
+    const dims=w&&w.dimensions||{};
+    return [m.internalId,name,prev['Категория']||'',w&&w.offer?w.offer:(o&&o.offer?o.offer:''),w&&w.barcode?w.barcode:(o&&o.barcode?o.barcode:''),prev['Себестоимость']||'',stockValue,prev['Срок поставки, дней']||'',prev['Запас, дней']||'',prev['Маржинальность товара, %']||'',prev['Используемая маржинальность, %']||'',!!w,w?w.id:'',w?w.offer:'',wbCodes,!!o,o?o.id:'',o?o.offer:'',ozSku,m.status,source,prev['Последнее движение']||'',now_(),w?(w.chrtId||prev['WB chrtId (служебно)']||''):(prev['WB chrtId (служебно)']||''),w?(w.subjectId||prev['WB Subject ID (служебно)']||''):(prev['WB Subject ID (служебно)']||''),w?(dims.length||prev['WB Длина, см (служебно)']||''):(prev['WB Длина, см (служебно)']||''),w?(dims.width||prev['WB Ширина, см (служебно)']||''):(prev['WB Ширина, см (служебно)']||''),w?(dims.height||prev['WB Высота, см (служебно)']||''):(prev['WB Высота, см (служебно)']||'')];
   });
   if(sh.getLastRow()>1)sh.getRange(2,1,sh.getLastRow()-1,sh.getLastColumn()).clearContent();
   if(rows.length)sh.getRange(2,1,rows.length,headers.length).setValues(rows);
