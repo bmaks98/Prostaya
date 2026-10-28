@@ -5,6 +5,7 @@ function onOpen() {
     .addSeparator().addItem('Проверить подключение WB','checkWbConnection')
     .addItem('Проверить подключение Ozon','checkOzonConnection')
     .addItem('Проверить подключения','checkAllConnections')
+    .addItem('Обновить список складов','refreshWarehouseSettings')
     .addSeparator().addItem('Импортировать каталог','importCatalogs')
     .addItem('Проверить сопоставление','runMatching')
     .addItem('Проверить готовность системы','checkSystemReadiness').addToUi();
@@ -60,6 +61,7 @@ function onOpen() {
 
   ui.createMenu('Настройки').addItem('Открыть лист «Настройки»','openSettingsSheet')
     .addItem('Сохранить API-ключи','saveApiCredentials')
+    .addItem('Обновить список складов','refreshWarehouseSettings')
     .addItem('Проверить систему','checkSystemReadiness')
     .addItem('Повторно выполнить первичную настройку','installProject')
     .addItem('Сбросить только служебные настройки','resetServiceState').addToUi();
