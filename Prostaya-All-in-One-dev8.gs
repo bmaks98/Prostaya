@@ -1560,8 +1560,8 @@ function dashboardPeriod_(){
 }
 function dashboardParseDate_(v){if(v instanceof Date&&!isNaN(v))return new Date(v);if(!v)return null;const d=new Date(v);return isNaN(d)?null:d;}
 function dashboardDateOnly_(d){return new Date(d.getFullYear(),d.getMonth(),d.getDate());}
-function dashboardDateKey_(d){return Utilities.formatDate(d,ss_().getSpreadsheetTimeZone(),'yyyy-MM-dd');}
-function dashboardMonthKey_(d){return Utilities.formatDate(d,ss_().getSpreadsheetTimeZone(),'yyyy-MM');}
+function dashboardDateKey_(d){return Utilities.formatDate(d,String(safeTimeZone_()),'yyyy-MM-dd');}
+function dashboardMonthKey_(d){return Utilities.formatDate(d,String(safeTimeZone_()),'yyyy-MM');}
 function dashboardMoney_(v){if(v&&typeof v==='object'&&Object.prototype.hasOwnProperty.call(v,'amount'))return toNumber_(v.amount);return toNumber_(v);}
 
 function emptyDashboardMarket_(name){return {name:name,revenue:0,qty:0,cogs:0,commission:0,logistics:0,other:0,profit:0,returns:0,products:{},series:{},checks:{},rawCount:0,failed:false,warning:''};}
