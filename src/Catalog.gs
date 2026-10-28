@@ -104,8 +104,9 @@ function ozonFetchCatalog_() {
   const ids=unique.map(x=>x.id).filter(Boolean);
   for (let i=0;i<ids.length;i+=1000) {
     const batch=ids.slice(i,i+1000);
-    const resp=ozonRequest_('/v3/products/info/attributes',{filter:{product_id:batch},limit:1000},'Атрибуты товаров Ozon').json || {};
-    const attrs=Array.isArray(resp.result) ? resp.result : (resp.result && Array.isArray(resp.result.items) ? resp.result.items : []);
+    // Ozon перевёл получение характеристик товара на v4.
+    const resp=ozonRequest_('/v4/product/info/attributes',{filter:{product_id:batch},limit:1000},'Атрибуты товаров Ozon').json || {};
+    const attrs=Array.isArray(resp.result) ? resp.result : (resp.result && Array.isArray(resp.result.items) ? resp.result.items : (Array.isArray(resp.items) ? resp.items : []));
     attrs.forEach(a=>{
       const id=asText_(a.id||a.product_id);
       const row=byId[id]; if(!row) return;
@@ -114,6 +115,7 @@ function ozonFetchCatalog_() {
       if(asText_(a.barcode)) bc.push(asText_(a.barcode));
       (a.barcodes||[]).forEach(x=>{ const v=typeof x==='object' ? asText_(x.barcode||x.value) : asText_(x); if(v) bc.push(v); });
       row.barcodes=Array.from(new Set(bc)); row.barcode=row.barcodes[0]||'';
+      row.sku=asText_(a.sku)||row.sku;
       row.descriptionCategoryId=asText_(a.description_category_id);
       row.typeId=asText_(a.type_id);
       row.rawAttributes=a;
