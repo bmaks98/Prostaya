@@ -1592,9 +1592,28 @@ function mergeDashboardMarkets_(a,b,name){
   [a,b].forEach(m=>{Object.keys(m.checks||{}).forEach(k=>out.checks[m.name+'|'+k]=true);Object.keys(m.series||{}).forEach(k=>{const x=m.series[k],d=out.series[k]||(out.series[k]={date:x.date,revenue:0,profit:0,qty:0,cogs:0});d.revenue+=x.revenue||0;d.profit+=x.profit||0;d.qty+=x.qty||0;d.cogs+=x.cogs||0;});Object.keys(m.products||{}).forEach(k=>{const p=m.products[k],key=m.name+'|'+k;out.products[key]=Object.assign({},p);});});return out;
 }
 
+function dashboardInventoryForMarket_(marketName,stock){
+  if(marketName==='Общий') return {cost:stock.inventoryCost||0,units:stock.inventoryUnits||0};
+  const enabled=marketName==='WB'
+    ? boolText_(getSetting_('Использовать WB','Нет'))
+    : boolText_(getSetting_('Использовать Ozon','Нет'));
+  if(!enabled) return {cost:0,units:0};
+  let cost=0,units=0;
+  (stock.rows||[]).forEach(x=>{
+    const linked=marketName==='WB'
+      ? !!(x.wbNm||x.wbArticle)
+      : !!(x.ozProduct||x.ozOffer||x.ozSku);
+    if(!linked)return;
+    units+=x.stock||0;
+    cost+=(x.stock||0)*(x.cost||0);
+  });
+  return {cost:cost,units:units};
+}
+
 function dashboardMetrics_(market,stock){
   const checks=Object.keys(market.checks||{}).length, avg=checks?market.revenue/checks:0, margin=market.cogs?market.profit/market.cogs:0;
-  return [market.revenue,market.qty,market.cogs,market.commission,market.logistics,market.other,market.profit,margin,avg,market.returns,stock.inventoryCost,stock.inventoryUnits];
+  const inventory=dashboardInventoryForMarket_(market.name,stock);
+  return [market.revenue,market.qty,market.cogs,market.commission,market.logistics,market.other,market.profit,margin,avg,market.returns,inventory.cost,inventory.units];
 }
 /* ===== DashboardWB.gs ===== */
 /** WB: актуальный Finance API с пагинацией rrdId. */
