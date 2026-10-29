@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <style>
+    body{font-family:Arial,sans-serif;margin:0;padding:20px;color:#202124;background:#fff}
+    h2{margin:0 0 8px;font-size:20px}.muted{color:#5f6368;font-size:13px;line-height:1.4}
+    .product{margin:12px 0 16px;padding:10px 12px;background:#eef4ea;border-radius:8px;font-size:13px}
+    #drop{border:2px dashed #9aa0a6;border-radius:12px;padding:34px 18px;text-align:center;cursor:pointer;background:#fafafa;transition:.15s}
+    #drop.over{border-color:#34a853;background:#f1f8f3}.big{font-size:17px;font-weight:700;margin-bottom:6px}
+    input[type=file]{display:none}.files{margin-top:14px;max-height:200px;overflow:auto;border:1px solid #e0e0e0;border-radius:8px}
+    .file{display:flex;align-items:center;gap:10px;padding:8px 10px;border-bottom:1px solid #eee;font-size:13px}.file:last-child{border-bottom:0}
+    .num{width:26px;height:26px;border-radius:50%;background:#d9ead3;display:flex;align-items:center;justify-content:center;font-weight:700;flex:0 0 auto}
+    .name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.size{color:#777;font-size:12px}
+    .actions{display:flex;justify-content:flex-end;gap:10px;margin-top:16px}.btn{border:0;border-radius:7px;padding:10px 16px;font-size:14px;cursor:pointer}.primary{background:#1a73e8;color:#fff}.secondary{background:#f1f3f4}.btn:disabled{opacity:.5;cursor:default}
+    #progress{margin-top:14px;display:none}.bar{height:8px;border-radius:8px;background:#eee;overflow:hidden}.fill{height:100%;width:0;background:#34a853;transition:.2s}.status{margin-top:7px;font-size:13px}
+    .error{color:#b3261e}.ok{color:#137333;font-weight:700}.note{margin-top:12px;padding:9px 11px;background:#fff8e1;border-radius:7px;font-size:12px;color:#5f4b00}
+  </style>
+</head>
+<body>
+  <h2>Загрузить фото товара</h2>
+  <div class="muted">Выберите до 10 изображений. Они будут помещены внутрь ячеек «Фото 1…Фото 10», а не поверх таблицы.</div>
+  <div class="product" id="product"></div>
+  <div id="drop">
+    <div class="big">Перетащите фото сюда</div>
+    <div class="muted">или нажмите, чтобы выбрать несколько файлов с ПК</div>
+    <input id="picker" type="file" multiple accept="image/jpeg,image/png,image/webp,image/gif">
+  </div>
+  <div class="files" id="files" style="display:none"></div>
+  <div class="note">При загрузке существующие значения «Фото 1…» для этой строки будут заменены в порядке выбранных файлов.</div>
+  <div id="progress"><div class="bar"><div class="fill" id="fill"></div></div><div class="status" id="status"></div></div>
+  <div class="actions"><button class="btn secondary" onclick="google.script.host.close()">Закрыть</button><button id="upload" class="btn primary" disabled>Загрузить фото</button></div>
+<script>
+const DATA = <?!= JSON.stringify(data) ?>;
+let chosen=[];
+const drop=document.getElementById('drop'),picker=document.getElementById('picker'),list=document.getElementById('files'),upload=document.getElementById('upload'),progress=document.getElementById('progress'),fill=document.getElementById('fill'),statusEl=document.getElementById('status');
+document.getElementById('product').textContent='Строка '+DATA.row+(DATA.article?' · Артикул: '+DATA.article:'')+(DATA.name?' · '+DATA.name:'');
+drop.addEventListener('click',()=>picker.click());
+drop.addEventListener('dragover',e=>{e.preventDefault();drop.classList.add('over')});
+drop.addEventListener('dragleave',()=>drop.classList.remove('over'));
+drop.addEventListener('drop',e=>{e.preventDefault();drop.classList.remove('over');setFiles(e.dataTransfer.files)});
+picker.addEventListener('change',()=>setFiles(picker.files));
+upload.addEventListener('click',startUpload);
+function setFiles(files){
+  const arr=Array.from(files||[]).filter(f=>/^image\//.test(f.type)).slice(0,DATA.maxPhotos||10);
+  chosen=arr;renderFiles();upload.disabled=!chosen.length;
+}
+function renderFiles(){
+  list.innerHTML='';list.style.display=chosen.length?'block':'none';
+  chosen.forEach((f,i)=>{const d=document.createElement('div');d.className='file';d.innerHTML='<div class="num">'+(i+1)+'</div><div class="name"></div><div class="size"></div>';d.querySelector('.name').textContent=f.name;d.querySelector('.size').textContent=(f.size/1024/1024).toFixed(1)+' МБ';list.appendChild(d);});
+}
+async function startUpload(){
+  if(!chosen.length)return;upload.disabled=true;progress.style.display='block';statusEl.className='status';
+  try{
+    for(let i=0;i<chosen.length;i++){
+      statusEl.textContent='Подготавливаю фото '+(i+1)+' из '+chosen.length+'…';
+      const payload=await prepareImage(chosen[i]);
+      statusEl.textContent='Загружаю фото '+(i+1)+' из '+chosen.length+'…';
+      await serverUpload(DATA.row,i+1,payload);
+      fill.style.width=Math.round((i+1)/chosen.length*100)+'%';
+    }
+    statusEl.className='status ok';statusEl.textContent='Готово: '+chosen.length+' фото загружено в строку '+DATA.row+'.';
+    setTimeout(()=>google.script.host.close(),900);
+  }catch(e){statusEl.className='status error';statusEl.textContent=e&&e.message?e.message:String(e);upload.disabled=false;}
+}
+function serverUpload(row,slot,payload){return new Promise((resolve,reject)=>google.script.run.withSuccessHandler(resolve).withFailureHandler(err=>reject(new Error(err&&err.message?err.message:String(err)))).uploadProductPhotoToCell(row,slot,payload));}
+function prepareImage(file){
+  return new Promise((resolve,reject)=>{
+    const reader=new FileReader();reader.onerror=()=>reject(new Error('Не удалось прочитать '+file.name));reader.onload=()=>{
+      const img=new Image();img.onerror=()=>reject(new Error('Не удалось открыть изображение '+file.name));img.onload=()=>{
+        const max=1800,scale=Math.min(1,max/Math.max(img.naturalWidth,img.naturalHeight)),w=Math.max(1,Math.round(img.naturalWidth*scale)),h=Math.max(1,Math.round(img.naturalHeight*scale));
+        const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;const ctx=canvas.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,w,h);ctx.drawImage(img,0,0,w,h);
+        const dataUrl=canvas.toDataURL('image/jpeg',0.90);resolve({name:file.name.replace(/\.[^.]+$/,'.jpg'),dataUrl:dataUrl});
+      };img.src=reader.result;
+    };reader.readAsDataURL(file);
+  });
+}
+</script>
+</body>
+</html>
