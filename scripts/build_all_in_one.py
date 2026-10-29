@@ -1,4 +1,5 @@
 from pathlib import Path
+import json
 
 ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / 'src'
@@ -12,8 +13,9 @@ ORDER = [
     'CardsAttributes.gs','CardsWB.gs','CardsOzon.gs','Scheduler.gs','Placeholders.gs'
 ]
 
-def template_literal(text):
-    return text.replace('\\', '\\\\').replace('`', '\\`').replace('${', '\\${')
+def js_string(text):
+    """Encode arbitrary HTML as one safe JavaScript string literal."""
+    return json.dumps(text, ensure_ascii=False)
 
 def patched_supplier(text):
     old1 = """  const tpl=HtmlService.createTemplateFromFile('SupplierOrderDialog');\n  tpl.data={mode:mode,products:supplierProductDirectory_(),lines:selected||[],today:supplierIsoDate_(new Date())};\n  SpreadsheetApp.getUi().showModalDialog(tpl.evaluate().setWidth(760).setHeight(mode==='forecast'?620:520),mode==='forecast'?'Создать заказ из прогноза':'Создать заказ поставщику');"""
@@ -25,14 +27,14 @@ def patched_supplier(text):
     return text.replace(old1, new1).replace(old2, new2)
 
 def main():
-    supplier_html = template_literal((SRC / 'SupplierOrderDialog.html').read_text(encoding='utf-8'))
-    receive_html = template_literal((SRC / 'ReceiveDeliveryDialog.html').read_text(encoding='utf-8'))
-    photo_html = template_literal((SRC / 'PhotoUploadDialog.html').read_text(encoding='utf-8'))
+    supplier_html = (SRC / 'SupplierOrderDialog.html').read_text(encoding='utf-8')
+    receive_html = (SRC / 'ReceiveDeliveryDialog.html').read_text(encoding='utf-8')
+    photo_html = (SRC / 'PhotoUploadDialog.html').read_text(encoding='utf-8')
     chunks = [
         '/** Prostaya All-in-One dev8. Generated from bmaks98/Prostaya src. */',
-        f'const PROSTAYA_SUPPLIER_ORDER_HTML_ = `{supplier_html}`;',
-        f'const PROSTAYA_RECEIVE_DELIVERY_HTML_ = `{receive_html}`;',
-        f'const PROSTAYA_PHOTO_UPLOAD_HTML_ = `{photo_html}`;',
+        f'const PROSTAYA_SUPPLIER_ORDER_HTML_ = {js_string(supplier_html)};',
+        f'const PROSTAYA_RECEIVE_DELIVERY_HTML_ = {js_string(receive_html)};',
+        f'const PROSTAYA_PHOTO_UPLOAD_HTML_ = {js_string(photo_html)};',
         """function prostayaRenderHtml_(html, data) {\n  const json = JSON.stringify(data || {}).replace(/</g, '\\\\u003c');\n  return html.replace('<?!= JSON.stringify(data) ?>', json);\n}\nfunction installSystemFromTemplate(){ bindInstanceSpreadsheet_(); return installProject(); }"""
     ]
     for name in ORDER:
