@@ -27,10 +27,12 @@ def patched_supplier(text):
 def main():
     supplier_html = template_literal((SRC / 'SupplierOrderDialog.html').read_text(encoding='utf-8'))
     receive_html = template_literal((SRC / 'ReceiveDeliveryDialog.html').read_text(encoding='utf-8'))
+    photo_html = template_literal((SRC / 'PhotoUploadDialog.html').read_text(encoding='utf-8'))
     chunks = [
         '/** Prostaya All-in-One dev8. Generated from bmaks98/Prostaya src. */',
         f'const PROSTAYA_SUPPLIER_ORDER_HTML_ = `{supplier_html}`;',
         f'const PROSTAYA_RECEIVE_DELIVERY_HTML_ = `{receive_html}`;',
+        f'const PROSTAYA_PHOTO_UPLOAD_HTML_ = `{photo_html}`;',
         """function prostayaRenderHtml_(html, data) {\n  const json = JSON.stringify(data || {}).replace(/</g, '\\\\u003c');\n  return html.replace('<?!= JSON.stringify(data) ?>', json);\n}\nfunction installSystemFromTemplate(){ bindInstanceSpreadsheet_(); return installProject(); }"""
     ]
     for name in ORDER:
