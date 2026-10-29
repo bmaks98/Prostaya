@@ -1770,7 +1770,15 @@ function rebuildOzonSeriesProfit_(market,accruals){
 function writeDashboard_(period,wb,oz,total,stock,errors){
   const sh=sheet_(APP.SHEETS.DASHBOARD);ensureDashboardLayout_();
   sh.getRange('B4').setValue(period.from).setNumberFormat('dd.mm.yyyy');sh.getRange('B5').setValue(period.to).setNumberFormat('dd.mm.yyyy');
-  sh.getRange('D3').setValue('Последнее обновление');sh.getRange('D4').setValue(now_()).setNumberFormat('dd.mm.yyyy hh:mm');sh.getRange('D5').setValue(errors.length?errors.join(' | '):'Данные загружены успешно');
+  let statusText='Данные загружены успешно';
+  if(errors.length) statusText=errors.join(' | ');
+  else {
+    const notes=[];
+    if(boolText_(getSetting_('Использовать WB','Нет')) && (wb.rawCount||0)===0) notes.push('WB: финансовых данных за период не найдено');
+    if(boolText_(getSetting_('Использовать Ozon','Нет')) && (oz.rawCount||0)===0) notes.push('Ozon: финансовых начислений за период не найдено');
+    if(notes.length) statusText=notes.join(' | ');
+  }
+  sh.getRange('D3').setValue('Последнее обновление');sh.getRange('D4').setValue(now_()).setNumberFormat('dd.mm.yyyy hh:mm');sh.getRange('D5').setValue(statusText);
   const wm=dashboardMetrics_(wb,stock),om=dashboardMetrics_(oz,stock),tm=dashboardMetrics_(total,stock),data=[];for(let i=0;i<12;i++)data.push([wm[i],om[i],tm[i]]);
   sh.getRange(8,2,12,3).setValues(data);sh.getRange('B8:D8').setNumberFormat('#,##0.00');sh.getRange('B9:D9').setNumberFormat('#,##0');sh.getRange('B10:D14').setNumberFormat('#,##0.00');sh.getRange('B15:D15').setNumberFormat('0.0%');sh.getRange('B16:D16').setNumberFormat('#,##0.00');sh.getRange('B17:D17').setNumberFormat('#,##0');sh.getRange('B18:D18').setNumberFormat('#,##0.00');sh.getRange('B19:D19').setNumberFormat('#,##0');
   const seriesCount=writeDashboardSeries_(sh,period,wb,oz,total), productStart=Math.max(40,25+seriesCount);writeDashboardProducts_(sh,wb,oz,total,stock,productStart);buildDashboardCharts_(sh,seriesCount);
