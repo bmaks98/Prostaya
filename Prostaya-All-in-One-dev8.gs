@@ -1001,8 +1001,9 @@ function ozonRecentFbsPostings_(warehouseId){
   const since=new Date(Date.now()-30*86400000).toISOString(), to=new Date(Date.now()+86400000).toISOString(); const all=[]; let offset=0;
   for(let page=0;page<100;page++){
     const filter={since:since,to:to}; if(warehouseId) filter.warehouse_id=[Number(warehouseId)];
-    const r=ozonRequest_('/v3/posting/fbs/list',{dir:'ASC',filter:filter,with:{analytics_data:true},limit:500,offset:offset},'Заказы Ozon').json||{};
-    const result=r.result||r, posts=Array.isArray(result.postings)?result.postings:[]; all.push.apply(all,posts); if(posts.length<500)break; offset+=posts.length;
+    const r=ozonRequest_('/v4/posting/fbs/list',{dir:'ASC',filter:filter,with:{analytics_data:true},limit:500,offset:offset},'Заказы Ozon').json||{};
+    // В v4 поле postings находится в корне ответа; fallback на result оставлен для совместимости.
+    const result=r.result||r, posts=Array.isArray(r.postings)?r.postings:(Array.isArray(result.postings)?result.postings:[]); all.push.apply(all,posts); if(posts.length<500)break; offset+=posts.length;
   }
   return all;
 }
