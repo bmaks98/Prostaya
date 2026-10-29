@@ -1,5 +1,6 @@
 function installProject() {
   const ss = ss_();
+  try { ss.setSpreadsheetTimeZone('Europe/Moscow'); } catch (e) {}
   ss.toast('Создаю структуру проекта…', APP.NAME, 5);
   ensureSheet_(APP.SHEETS.START);
   ensureSettingsSheet_();
