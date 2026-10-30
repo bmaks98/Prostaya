@@ -1022,6 +1022,9 @@ function syncStocks(){
  * Приоритет маржи: товар -> категория -> значение по умолчанию.
  * Ручной режим задаётся отдельно для WB и Ozon.
  */
+const OZON_FBS_RATE_TO_100_=0.17;
+const OZON_FBS_RATE_100_300_=0.23;
+
 function calculatePrices(){
   const started=Date.now(), stock=priceStockRows_(), old=readExistingPriceRows_();
   const useWb=boolText_(getSetting_('Использовать WB','Нет')), useOzon=boolText_(getSetting_('Использовать Ozon','Нет'));
@@ -1063,11 +1066,16 @@ function calculatePrices(){
     if(useOzon&&item.ozOffer){
       const p=ozPrices[item.ozOffer]||{}; ozCurrent=ozExtractCurrentPrice_(p)||'';
       const econ=ozExtractPriceExpenses_(p);
-      if(cost<=0){ ozStatus='НЕТ СЕБЕСТОИМОСТИ'; }
-      else if(!econ.hasCommission){ ozStatus='НЕТ ДАННЫХ КОМИССИИ OZON'; }
-      else {
-        ozCalc=requiredPrice_(requiredNet,econ.commissionRate,econ.logistics); ozMin=ozCalc;
-        ozStatus='ГОТОВО — комиссия '+Math.round(econ.commissionRate*1000)/10+'%, логистика ~'+Math.round(econ.logistics)+' ₽';
+      if(cost<=0){
+        ozStatus='НЕТ СЕБЕСТОИМОСТИ';
+      } else {
+        const tier=ozonTieredPrice_(requiredNet,econ);
+        if(!tier.ok){
+          ozStatus=tier.error||'НЕ УДАЛОСЬ РАССЧИТАТЬ ЦЕНУ OZON';
+        } else {
+          ozCalc=tier.price; ozMin=tier.price;
+          ozStatus='ГОТОВО — диапазон '+tier.band+', комиссия '+Math.round(tier.commissionRate*1000)/10+'%, логистика ~'+Math.round(econ.logistics)+' ₽';
+        }
       }
     }
 
@@ -1178,6 +1186,20 @@ function writeUsedMarginToStock_(row,margin){const sh=sheet_(APP.SHEETS.STOCK),h
 function normalizePriceMode_(v){return String(v).toLowerCase().indexOf('руч')>=0?'Ручной':'Авто';}
 function toNumber_(v){if(typeof v==='number')return Number.isFinite(v)?v:0;const n=Number(String(v==null?'':v).replace(/\s/g,'').replace('%','').replace(',','.'));return Number.isFinite(n)?n:0;}
 function requiredPrice_(requiredNet,rate,fixed){const r=1-Math.max(0,rate||0);return requiredNet>0&&r>0.05?Math.ceil((requiredNet+Math.max(0,fixed||0))/r):0;}
+function ozonTieredPrice_(requiredNet,econ){
+  const logistics=Math.max(0,toNumber_(econ&&econ.logistics));
+  const p100=requiredPrice_(requiredNet,OZON_FBS_RATE_TO_100_,logistics);
+  if(p100>0&&p100<=100)return {ok:true,price:p100,commissionRate:OZON_FBS_RATE_TO_100_,band:'до 100 ₽'};
+
+  const p300=requiredPrice_(requiredNet,OZON_FBS_RATE_100_300_,logistics);
+  if(p300>0&&p300<=300)return {ok:true,price:Math.max(101,p300),commissionRate:OZON_FBS_RATE_100_300_,band:'100,01–300 ₽'};
+
+  const apiRate=Math.max(0,toNumber_(econ&&econ.commissionRate));
+  if(!(econ&&econ.hasCommission)||apiRate<=0||apiRate>=0.95)return {ok:false,error:'НЕТ ДАННЫХ КОМИССИИ OZON ДЛЯ ДИАПАЗОНА СВЫШЕ 300 ₽'};
+  const pHigh=requiredPrice_(requiredNet,apiRate,logistics);
+  if(!pHigh)return {ok:false,error:'НЕ УДАЛОСЬ РАССЧИТАТЬ ЦЕНУ OZON СВЫШЕ 300 ₽'};
+  return {ok:true,price:Math.max(301,pHigh),commissionRate:apiRate,band:'свыше 300 ₽'};
+}
 function priceErrorText_(wb,oz){const bad=[];[wb,oz].forEach(x=>{if(x&&x!=='НЕ ПОДКЛЮЧЕН'&&x.indexOf('ГОТОВО')!==0)bad.push(x);});return bad.join(' | ');}
 
 function wbFetchCurrentPrices_(nmIds){
