@@ -7,7 +7,7 @@ OUT = ROOT / 'Prostaya-All-in-One-dev8.gs'
 
 ORDER = [
     'Config.gs','Utils.gs','Logging.gs','Settings.gs','ApiClient.gs','Connections.gs','Warehouses.gs',
-    'Installer.gs','Menu.gs','Readiness.gs','Catalog.gs','Matching.gs','Orders.gs','Stocks.gs','Prices.gs',
+    'Installer.gs','Menu.gs','Readiness.gs','Catalog.gs','Matching.gs','Orders.gs','Stocks.gs','Prices.gs','PricesOzonEconomics.gs',
     'ActionsHelpers.gs','ActionsCheck.gs','ActionsApply.gs','DashboardCore.gs','DashboardWB.gs','DashboardOzon.gs',
     'DashboardUI.gs','Procurement.gs','SupplierOrders.gs','CardsCore.gs','CardsImages.gs','CardsCategories.gs',
     'CardsAttributes.gs','CardsWB.gs','CardsOzon.gs','Scheduler.gs','Placeholders.gs'
