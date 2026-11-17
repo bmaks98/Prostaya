@@ -22,6 +22,7 @@ function onOpen() {
 
   const cardsMenu = ui.createMenu('Карточки')
     .addItem('📷 Загрузить фото с ПК','showProductPhotoUploader')
+    .addItem('🔗 Загрузить фото по ссылкам','downloadProductPhotosFromLinks')
     .addSeparator()
     .addItem('Загрузить категории WB','loadWbSubjects')
     .addItem('Загрузить типы Ozon','loadOzonTypes')

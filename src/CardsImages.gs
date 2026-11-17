@@ -110,3 +110,90 @@ function uploadProductPhotoToCell(row,slot,payload){
     if(temp){try{Utilities.sleep(250);temp.setTrashed(true);}catch(_){} }
   }
 }
+
+/** Скачать фото по HTTPS-ссылкам и заменить их настоящими CellImage.
+ * Обрабатываем только выделенные строки листа новых карточек.
+ * Исходные ссылки сохраняем в примечаниях; флажок «Создать» не трогаем.
+ */
+function downloadProductPhotosFromLinks(){
+  const ui=SpreadsheetApp.getUi(),ss=SpreadsheetApp.getActiveSpreadsheet(),sh=ss.getActiveSheet(),sel=sh.getActiveRange();
+  if(sh.getName()!==APP.SHEETS.NEW_CARDS||!sel||sel.getRow()<2){ui.alert('Откройте «Новые карточки» и выделите ячейку или несколько строк товаров.');return;}
+  if(sel.getNumRows()>10){ui.alert('Выделите не более 10 строк за один запуск.');return;}
+  const h=findHeaderMap_(sh),lock=LockService.getDocumentLock();
+  if(!lock.tryLock(1000)){ui.alert('Другая операция уже выполняется. Повторите позже.');return;}
+  let ok=0,skipped=0,errors=[],remaining=false;
+  const started=Date.now();
+  try{
+    scan: for(let row=sel.getRow();row<=sel.getLastRow();row++){
+      for(let slot=1;slot<=10;slot++){
+        if(Date.now()-started>225000){remaining=true;break scan;}
+        const col=h['Фото '+slot];if(!col)continue;
+        const cell=sh.getRange(row,col),value=cell.getValue();
+        if(value&&value.valueType===SpreadsheetApp.ValueType.IMAGE){skipped++;continue;}
+        const formula=cell.getFormula(),rich=cell.getRichTextValue(),note=cell.getNote();
+        let link=typeof value==='string'&&/^https:\/\//i.test(value.trim())?value.trim():'';
+        if(!link&&rich&&rich.getLinkUrl())link=String(rich.getLinkUrl()).trim();
+        if(!link&&formula){const m=formula.match(/^=\s*(?:IMAGE|HYPERLINK)\s*\(\s*"(https:\/\/[^"]+)"/i);if(m)link=m[1];}
+        if(!link){if(value!==''&&value!==null)errors.push(cell.getA1Notation()+': не найдена HTTPS-ссылка.');continue;}
+        let attempted=false;
+        try{
+          const payload=cardDownloadPhotoLink_(link,slot);
+          // Не заменяем ячейку, если пользователь уже изменил её во время скачивания.
+          if(cell.getFormula()!==formula||String(cell.getValue())!==String(value))throw new Error('Ячейка изменена во время скачивания.');
+          attempted=true;
+          uploadProductPhotoToCell(row,slot,payload);
+          const inserted=cell.getValue();
+          if(!cardImageContentUrl_(inserted))throw new Error('Не удалось получить URL вставленного CellImage.');
+          const backup='Исходная ссылка: '+link;
+          if(!String(note||'').split('\n').includes(backup))cell.setNote(note?note+'\n'+backup:backup);
+          ok++;
+        }catch(e){
+          if(attempted){
+            try{if(formula)cell.setFormula(formula);else if(rich)cell.setRichTextValue(rich);else cell.setValue(value);cell.setNote(note||'');}
+            catch(restoreError){errors.push(cell.getA1Notation()+': не удалось восстановить ссылку; '+link);}
+          }
+          errors.push(cell.getA1Notation()+': '+String(e.message||e).substring(0,240));
+        }
+      }
+    }
+  }finally{lock.releaseLock();}
+  ui.alert('Загрузка фото по ссылкам','Вставлено: '+ok+'\nУже были изображениями: '+skipped+'\nОшибок: '+errors.length+(remaining?'\nДостигнут лимит времени. Повторите команду для оставшихся ссылок.':'')+(errors.length?'\n\n'+errors.slice(0,12).join('\n')+(errors.length>12?'\n… ещё '+(errors.length-12):''):''),ui.ButtonSet.OK);
+}
+
+/** Принимаем только HTTPS и реальные JPG/PNG/WEBP/GIF до 6 МБ.
+ * Публичные ссылки Drive распознаются отдельно. Закрытый Drive-файл
+ * не открываем публично; скачивание через Drive API только при доступе
+ * «всем по ссылке» или «всем». Остальные запросы — без токенов.
+ */
+function cardDownloadPhotoLink_(link,slot){
+  if(!/^https:\/\/[^/\s]+(?:[/?#]|$)/i.test(link))throw new Error('Поддерживаются только HTTPS-ссылки.');
+  const drive=/^https:\/\/drive\.google\.com\/file\/d\/([A-Za-z0-9_-]+)/i.exec(link)||(/^https:\/\/drive\.google\.com\/(?:uc|open)(?:\?|$)/i.test(link)?/[?&]id=([A-Za-z0-9_-]+)/i.exec(link):null);
+  let bytes=null,source=link;
+  if(drive){
+    try{
+      const f=DriveApp.getFileById(drive[1]),access=f.getSharingAccess();
+      if(access===DriveApp.Access.ANYONE||access===DriveApp.Access.ANYONE_WITH_LINK){
+        if(f.getSize()>6*1024*1024)throw new Error('Файл больше 6 МБ.');
+        bytes=f.getBlob().getBytes();
+      }
+    }catch(_){}
+    const key=/[?&]resourcekey=([A-Za-z0-9_-]+)/i.exec(link);
+    source='https://drive.google.com/uc?export=download&id='+drive[1]+(key?'&resourcekey='+key[1]:'');
+  }
+  if(!bytes){
+    const response=UrlFetchApp.fetch(source,{muteHttpExceptions:true,followRedirects:true});
+    const code=response.getResponseCode();
+    if(code<200||code>=300)throw new Error('HTTP '+code+'. Проверьте доступ по ссылке.');
+    bytes=response.getContent();
+  }
+  if(!bytes.length||bytes.length>6*1024*1024)throw new Error('Пустой файл или размер больше 6 МБ.');
+  const b=i=>(bytes[i]||0)&255;
+  let mime='',ext='';
+  if(b(0)===255&&b(1)===216&&b(2)===255){mime='image/jpeg';ext='jpg';}
+  else if(b(0)===137&&b(1)===80&&b(2)===78&&b(3)===71&&b(4)===13&&b(5)===10&&b(6)===26&&b(7)===10){mime='image/png';ext='png';}
+  else if(b(0)===71&&b(1)===73&&b(2)===70&&b(3)===56&&(b(4)===55||b(4)===57)&&b(5)===97){mime='image/gif';ext='gif';}
+  else if(b(0)===82&&b(1)===73&&b(2)===70&&b(3)===70&&b(8)===87&&b(9)===69&&b(10)===66&&b(11)===80){mime='image/webp';ext='webp';}
+  if(!mime)throw new Error('По ссылке получено не поддерживаемое изображение (возможно, HTML или страница входа).');
+  return {name:'card_photo_'+slot+'.'+ext,dataUrl:'data:'+mime+';base64,'+Utilities.base64Encode(bytes)};
+}
+
